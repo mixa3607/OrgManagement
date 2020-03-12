@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AuthWebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route(GlobalConst.ApiRoot + "/[controller]")]
     [ApiController]
     public class UserNameController : ControllerBase
     {
