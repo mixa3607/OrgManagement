@@ -13,10 +13,10 @@ namespace ManagementWebApi.Database
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
 
-        //public long PassportId { get; set; }
+        public long PassportId { get; set; }
         public DbPassport NavPassport { get; set; }
 
-        //public long TaxIdId { get; set; }
+        public long TaxIdId { get; set; }
         public DbTaxId NavTaxId { get; set; }
 
         public List<DbDevice> NavDevices { get; set; }

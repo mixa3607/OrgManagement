@@ -8,7 +8,7 @@
         public long TaxIdScan { get; set; }
         public DbFile NavTaxIdScan { get; set; }
 
-        public long EmployeeId { get; set; }
+        //public long EmployeeId { get; set; }
         public DbEmployee NavEmployee { get; set; }
 
     }

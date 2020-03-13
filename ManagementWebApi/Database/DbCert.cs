@@ -8,8 +8,8 @@ namespace ManagementWebApi.Database
 
         public string Name { get; set; }
 
-        public DateTime IssuedAt { get; set; }
-        public DateTime ExpiredBefore { get; set; }
+        public DateTime NotBefore { get; set; }
+        public DateTime NotAfter { get; set; }
 
         public long CertFileId { get; set; }
         public DbFile NavCertFile { get; set; }

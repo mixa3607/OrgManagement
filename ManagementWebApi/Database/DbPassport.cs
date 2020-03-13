@@ -17,7 +17,7 @@ namespace ManagementWebApi.Database
         public long ScanFileId { get; set; }
         public DbFile NavScanFile { get; set; }
 
-        public long EmployeeId { get; set; }
+        //public long EmployeeId { get; set; }
         public DbEmployee NavEmployee { get; set; }
     }
 }

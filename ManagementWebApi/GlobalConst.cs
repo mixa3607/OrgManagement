@@ -4,5 +4,6 @@
     {
         public const string ApiVersion = "1.0";
         public const string ApiRoot = "/api/" + ApiVersion;
+        public const string RelFilesPath = "files/";
     }
 }

@@ -39,6 +39,8 @@ namespace ManagementWebApi.Database
             certs.HasKey(x => x.Id);
             certs.Property(x => x.Id).IsRequired();
             certs.Property(x => x.Name).IsRequired();
+            certs.HasIndex(x => x.ContainerFileId).IsUnique();
+            certs.HasIndex(x => x.CertFileId).IsUnique();
             certs.HasOne(x => x.NavCertFile).WithOne(y=>y.NavCert).HasForeignKey<DbCert>(x => x.CertFileId);
             certs.HasOne(x => x.NavContainerFile).WithOne(y=>y.NavContainerCert).HasForeignKey<DbCert>(x => x.ContainerFileId);
             certs.HasOne(x => x.NavEmployee).WithMany(y => y.NavCerts).HasForeignKey(x => x.EmployeeId);
@@ -70,8 +72,8 @@ namespace ManagementWebApi.Database
             employees.Property(x => x.DomainNameEntry).IsRequired();
             employees.Property(x => x.PhoneNumber).IsRequired();
             employees.Property(x => x.Email).IsRequired();
-            employees.HasOne(x => x.NavPassport).WithOne(y => y.NavEmployee).HasForeignKey<DbPassport>(z => z.EmployeeId);
-            employees.HasOne(x => x.NavTaxId).WithOne(y => y.NavEmployee).HasForeignKey<DbTaxId>(y => y.EmployeeId);
+            employees.HasOne(x => x.NavPassport).WithOne(y => y.NavEmployee).HasForeignKey<DbEmployee>(z => z.TaxIdId);
+            employees.HasOne(x => x.NavTaxId).WithOne(y => y.NavEmployee).HasForeignKey<DbEmployee>(y => y.PassportId);
 
             files.HasKey(x => x.Id);
             files.Property(x => x.Md5Hash).IsRequired();
@@ -80,7 +82,9 @@ namespace ManagementWebApi.Database
             passports.Property(x => x.Issuer).IsRequired();
             passports.Property(x => x.RegPlace).IsRequired();
             passports.Property(x => x.BirthPlace).IsRequired();
-            passports.HasOne(x => x.NavScanFile).WithMany().HasForeignKey(x => x.ScanFileId);
+            //passports.HasIndex(x => x.EmployeeId).IsUnique();
+            passports.HasIndex(x => x.ScanFileId).IsUnique();
+            passports.HasOne(x => x.NavScanFile).WithOne(y=>y.NavPassport).HasForeignKey<DbPassport>(x => x.ScanFileId);
 
             softwares.HasKey(x => x.Id);
             softwares.Property(x => x.Code).IsRequired();
@@ -95,7 +99,7 @@ namespace ManagementWebApi.Database
             taxIds.HasKey(x => x.Id);
             taxIds.HasIndex(x => x.StrSerialNumber).IsUnique();
             taxIds.Property(x => x.StrSerialNumber).IsRequired();
-            taxIds.HasOne(x => x.NavTaxIdScan).WithMany().HasForeignKey(x => x.TaxIdScan);
+            taxIds.HasOne(x => x.NavTaxIdScan).WithOne(y=>y.NavTaxId).HasForeignKey<DbTaxId>(x => x.TaxIdScan);
 
         }
     }

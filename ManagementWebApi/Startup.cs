@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using ManagementWebApi.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -90,6 +92,11 @@ namespace ManagementWebApi
                     c.RoutePrefix = string.Empty;
                 });
             }
+
+            var webRoot = Path.Combine(env.ContentRootPath, "DataFolder");
+            env.WebRootPath = webRoot;
+            env.WebRootFileProvider = new PhysicalFileProvider(webRoot);
+
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
