@@ -15,6 +15,5 @@ namespace ManagementWebApi.Database
         public DbCert NavContainerCert { get; set; }
         public DbPassport NavPassport { get; set; }
         public DbTaxId NavTaxId { get; set; }
-
     }
 }

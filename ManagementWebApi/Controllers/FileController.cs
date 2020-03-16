@@ -44,11 +44,13 @@ namespace ManagementWebApi.Controllers
             var prefix = md5.Substring(0, 3);
             var virtualFilePath = Path.Combine(GlobalConst.RelFilesPath, prefix, md5);
             var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Md5Hash == md5);
+
+            var returnFileName = virtualFilePath;
             switch (dbFile.Type)
             {
-                case EFileType.Binary: virtualFilePath += ".bin"; break;
-                case EFileType.Image: virtualFilePath += ".png"; break;
-                case EFileType.Cert: virtualFilePath += ".crt"; break;
+                case EFileType.Binary: returnFileName += ".bin"; break;
+                case EFileType.Image: returnFileName += ".png"; break;
+                case EFileType.Cert: returnFileName += ".crt"; break;
             }
 
             if (!System.IO.File.Exists(Path.Combine(_virtualRoot, virtualFilePath)))
@@ -61,11 +63,11 @@ namespace ManagementWebApi.Controllers
                 });
             }
 
-            return File(virtualFilePath, MediaTypeNames.Application.Octet);
+            return File(virtualFilePath, MediaTypeNames.Application.Octet, returnFileName);
         }
 
         #region TODO: need refactoring
-        [HttpPut]
+        [HttpPut("cert")]
         public async Task<IActionResult> UploadCert(IFormFile file)
         {
             var fileStream = file.OpenReadStream();
@@ -77,15 +79,15 @@ namespace ManagementWebApi.Controllers
                 Directory.CreateDirectory(storeDir);
 
             var certBytes = new byte[fileStream.Length];
+            fileStream.Position = 0;
             fileStream.Read(certBytes, 0, (int)fileStream.Length);
             var cert = new X509Certificate2(certBytes);
             
-
             var dbFile = new DbFile()
             {
                 CreateDate = DateTime.UtcNow,
                 Md5Hash = hash,
-                Type = EFileType.Image
+                Type = EFileType.Cert
             };
             _db.Files.Add(dbFile);
             await _db.SaveChangesAsync();
@@ -96,12 +98,13 @@ namespace ManagementWebApi.Controllers
             return Ok(new CertUploadResult()
             {
                 Hash = hash,
+                Issuer = cert.Issuer,
                 NotAfter = cert.NotAfter,
                 NotBefore = cert.NotBefore,
             });
         }
 
-        [HttpPut]
+        [HttpPut("img")]
         public async Task<IActionResult> UploadImg(IFormFile file)
         {
             var fileStream = file.OpenReadStream();
@@ -130,7 +133,7 @@ namespace ManagementWebApi.Controllers
             });
         }
 
-        [HttpPut]
+        [HttpPut("bin")]
         public async Task<IActionResult> UploadBinary(IFormFile file)
         {
             var fileStream = file.OpenReadStream();

@@ -2,7 +2,7 @@
 
 namespace ManagementWebApi.DataModels
 {
-    public class CertUploadResult : IUploadResult
+    public class CertUploadResult : Cert, IUploadResult
     {
         public string Hash { get; set; }
 

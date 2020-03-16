@@ -10,6 +10,7 @@ namespace ManagementWebApi.Database
 
         public DateTime NotBefore { get; set; }
         public DateTime NotAfter { get; set; }
+        public string Issuer { get; set; }
 
         public long CertFileId { get; set; }
         public DbFile NavCertFile { get; set; }

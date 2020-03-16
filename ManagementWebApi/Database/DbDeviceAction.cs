@@ -7,7 +7,7 @@ namespace ManagementWebApi.Database
         public long Id { get; set; }
 
         public DateTime ReceiptDate { get; set; }
-        public DateTime ReturnDate { get; set; }
+        public DateTime? ReturnDate { get; set; }
         public long DeviceId { get; set; }
         public DbDevice NavDevice { get; set; }
 

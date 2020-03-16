@@ -84,7 +84,7 @@ namespace ManagementWebApi.Database
             passports.Property(x => x.BirthPlace).IsRequired();
             //passports.HasIndex(x => x.EmployeeId).IsUnique();
             passports.HasIndex(x => x.ScanFileId).IsUnique();
-            passports.HasOne(x => x.NavScanFile).WithOne(y=>y.NavPassport).HasForeignKey<DbPassport>(x => x.ScanFileId);
+            passports.HasOne(x => x.NavScanFile).WithOne(y=>y.NavPassport).HasForeignKey<DbPassport>(x => x.ScanFileId).OnDelete(DeleteBehavior.Restrict);
 
             softwares.HasKey(x => x.Id);
             softwares.Property(x => x.Code).IsRequired();
