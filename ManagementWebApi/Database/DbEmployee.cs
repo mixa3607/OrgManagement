@@ -12,6 +12,7 @@ namespace ManagementWebApi.Database
         public string DomainNameEntry { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
+        public bool IsOnline { get; set; } = false;
 
         public long PassportId { get; set; }
         public DbPassport NavPassport { get; set; }

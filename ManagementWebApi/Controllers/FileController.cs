@@ -66,11 +66,8 @@ namespace ManagementWebApi.Controllers
             return File(virtualFilePath, MediaTypeNames.Application.Octet, returnFileName);
         }
 
-        #region TODO: need refactoring
-        [HttpPut("cert")]
-        public async Task<IActionResult> UploadCert(IFormFile file)
+        private string SaveFileToFs(Stream fileStream)
         {
-            var fileStream = file.OpenReadStream();
             var md5Hasher = MD5.Create();
             var hash = md5Hasher.ComputeHash(fileStream).ToHexStr();
             var prefix = hash.Substring(0, 3);
@@ -78,25 +75,46 @@ namespace ManagementWebApi.Controllers
             if (!Directory.Exists(storeDir))
                 Directory.CreateDirectory(storeDir);
 
+            var storeFile = Path.Combine(storeDir, hash);
+            if (!System.IO.File.Exists(storeFile))
+            {
+                using var fs = System.IO.File.OpenWrite(storeFile);
+                fileStream.Position = 0;
+                fileStream.CopyTo(fs);
+            }
+
+            return hash;
+        }
+
+        #region TODO: need refactoring
+        [HttpPut("cert")]
+        public async Task<IActionResult> UploadCert(IFormFile file)
+        {
+            var fileStream = file.OpenReadStream();
+            var hash = SaveFileToFs(fileStream);
+
             var certBytes = new byte[fileStream.Length];
             fileStream.Position = 0;
             fileStream.Read(certBytes, 0, (int)fileStream.Length);
             var cert = new X509Certificate2(certBytes);
-            
-            var dbFile = new DbFile()
-            {
-                CreateDate = DateTime.UtcNow,
-                Md5Hash = hash,
-                Type = EFileType.Cert
-            };
-            _db.Files.Add(dbFile);
-            await _db.SaveChangesAsync();
 
-            await using var fs = System.IO.File.OpenWrite(Path.Combine(storeDir, hash));
-            fileStream.Position = 0;
-            await fileStream.CopyToAsync(fs);
+            var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Md5Hash == hash);
+
+            if (dbFile == null)
+            {
+                dbFile = new DbFile()
+                {
+                    CreateDate = DateTime.UtcNow,
+                    Md5Hash = hash,
+                    Type = EFileType.Cert
+                };
+                _db.Files.Add(dbFile);
+                await _db.SaveChangesAsync();
+            }
+
             return Ok(new CertUploadResult()
             {
+                Id = dbFile.Id,
                 Hash = hash,
                 Issuer = cert.Issuer,
                 NotAfter = cert.NotAfter,
@@ -108,27 +126,25 @@ namespace ManagementWebApi.Controllers
         public async Task<IActionResult> UploadImg(IFormFile file)
         {
             var fileStream = file.OpenReadStream();
-            var md5Hasher = MD5.Create();
-            var hash = md5Hasher.ComputeHash(fileStream).ToHexStr();
-            var prefix = hash.Substring(0, 3);
-            var storeDir = Path.Combine(_virtualRoot, GlobalConst.RelFilesPath, prefix);
-            if (!Directory.Exists(storeDir))
-                Directory.CreateDirectory(storeDir);
+            var hash = SaveFileToFs(fileStream);
 
-            var dbFile = new DbFile()
+            var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Md5Hash == hash);
+
+            if (dbFile == null)
             {
-                CreateDate = DateTime.UtcNow,
-                Md5Hash = hash,
-                Type = EFileType.Image
-            };
-            _db.Files.Add(dbFile);
-            await _db.SaveChangesAsync();
+                dbFile = new DbFile()
+                {
+                    CreateDate = DateTime.UtcNow,
+                    Md5Hash = hash,
+                    Type = EFileType.Image
+                };
+                _db.Files.Add(dbFile);
+                await _db.SaveChangesAsync();
+            }
 
-            await using var fs = System.IO.File.OpenWrite(Path.Combine(storeDir, hash));
-            fileStream.Position = 0;
-            await fileStream.CopyToAsync(fs);
             return Ok(new UploadResult()
             {
+                Id = dbFile.Id,
                 Hash = hash
             });
         }
@@ -137,27 +153,25 @@ namespace ManagementWebApi.Controllers
         public async Task<IActionResult> UploadBinary(IFormFile file)
         {
             var fileStream = file.OpenReadStream();
-            var md5Hasher = MD5.Create();
-            var hash = md5Hasher.ComputeHash(fileStream).ToHexStr();
-            var prefix = hash.Substring(0, 3);
-            var storeDir = Path.Combine(_virtualRoot, GlobalConst.RelFilesPath, prefix);
-            if (!Directory.Exists(storeDir))
-                Directory.CreateDirectory(storeDir);
+            var hash = SaveFileToFs(fileStream);
 
-            var dbFile = new DbFile()
+            var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Md5Hash == hash);
+
+            if (dbFile == null)
             {
-                CreateDate = DateTime.UtcNow,
-                Md5Hash = hash,
-                Type = EFileType.Binary
-            };
-            _db.Files.Add(dbFile);
-            await _db.SaveChangesAsync();
+                dbFile = new DbFile()
+                {
+                    CreateDate = DateTime.UtcNow,
+                    Md5Hash = hash,
+                    Type = EFileType.Binary
+                };
+                _db.Files.Add(dbFile);
+                await _db.SaveChangesAsync();
+            }
 
-            await using var fs = System.IO.File.OpenWrite(Path.Combine(storeDir, hash));
-            fileStream.Position = 0;
-            await fileStream.CopyToAsync(fs);
             return Ok(new UploadResult()
             {
+                Id = dbFile.Id,
                 Hash = hash
             });
         }

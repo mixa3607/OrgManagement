@@ -78,13 +78,28 @@ namespace ManagementWebApi.Controllers
         public async Task<IActionResult> GetEmployees(int count = 50, int offset = 0)
         {
             var totalCount = await _db.Employees.CountAsync();
-            var values = await _db.Employees.Skip(offset).Take(offset).ToArrayAsync();
+            var values = await _db.Employees.Skip(offset).Take(count).ToArrayAsync();
 
             return Ok(new GetAllResult<Employee>()
             {
                 TotalCount = totalCount,
                 Values = values.Select(x => x.ToModel())
             });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEmployee(long id)
+        {
+            var dbEmployee = await _db.Employees
+                .Include(x=>x.NavPassport)
+                .Include(x=>x.NavTaxId)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (dbEmployee == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(dbEmployee.ToModel());
         }
 
         //TODO: add ids to return value
@@ -102,14 +117,14 @@ namespace ManagementWebApi.Controllers
                 IssuerNum = passport.IssuerNum,
                 RegPlace = passport.RegPlace,
                 SerialNumber = passport.SerialNumber,
-                ScanFileId = passport.ScanFile.Id
+                ScanFileId = passport.ScanFileId
             };
 
             var taxId = employee.TaxId;
             var dbTaxId = new DbTaxId()
             {
                 StrSerialNumber = taxId.SerialNumber,
-                TaxIdScan = taxId.TaxIdScan.Id
+                TaxIdScan = taxId.ScanFileId
             };
 
             var dbEmployee = new DbEmployee()

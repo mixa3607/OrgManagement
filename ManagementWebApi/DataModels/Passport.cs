@@ -14,7 +14,7 @@ namespace ManagementWebApi.DataModels
         public string BirthPlace { get; set; }
         public DateTime? BirthDay { get; set; }
 
-        //public long? ScanFileId { get; set; }
-        public File ScanFile { get; set; }
+        public long ScanFileId { get; set; }
+        //public File ScanFile { get; set; }
     }
 }

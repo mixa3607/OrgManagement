@@ -27,7 +27,7 @@ namespace ManagementWebApi.Controllers
             var dbTax = new DbTaxId()
             {
                 StrSerialNumber = tax.SerialNumber,
-                TaxIdScan = tax.TaxIdScan.Id
+                TaxIdScan = tax.ScanFileId
             };
             _db.TaxIds.Add(dbTax);
             await _db.SaveChangesAsync();

@@ -5,6 +5,7 @@
 
 # User-specific files
 logs/
+DataFolder/
 
 *.rsuser
 *.suo

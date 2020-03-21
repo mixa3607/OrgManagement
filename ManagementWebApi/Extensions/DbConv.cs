@@ -18,6 +18,7 @@ namespace ManagementWebApi.Extensions
                 WorkingPosition = dbEmployee.WorkingPosition,
                 PhoneNumber = dbEmployee.PhoneNumber,
                 Ipv4Address = dbEmployee.Ipv4StrAddress,
+                IsOnline = dbEmployee.IsOnline,
                 Passport = dbEmployee.NavPassport.ToModel(),
                 TaxId = dbEmployee.NavTaxId.ToModel(),
                 Certs = dbEmployee.NavCerts?.Select(x=>x.ToModel()),
@@ -40,7 +41,7 @@ namespace ManagementWebApi.Extensions
                     IssuerNum = dbPassport.IssuerNum,
                     RegPlace = dbPassport.RegPlace,
                     SerialNumber = dbPassport.SerialNumber,
-                    ScanFile = dbPassport.NavScanFile.ToModel(),
+                    ScanFileId = dbPassport.ScanFileId,
                 };
         }
 
@@ -52,7 +53,7 @@ namespace ManagementWebApi.Extensions
                 {
                     SerialNumber = dbTax.StrSerialNumber,
                     Id = dbTax.Id,
-                    TaxIdScan = dbTax.NavTaxIdScan.ToModel(),
+                    ScanFileId = dbTax.TaxIdScan,
                 };
         }
 
