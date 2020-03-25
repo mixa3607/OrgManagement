@@ -3,15 +3,17 @@ using System;
 using ManagementWebApi.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ManagementWebApi.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    partial class ManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200325185508_restrictWhenDelType")]
+    partial class restrictWhenDelType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -413,7 +415,7 @@ namespace ManagementWebApi.Migrations
                     b.HasOne("ManagementWebApi.Database.DbDeviceType", "NavDeviceType")
                         .WithMany("NavDevices")
                         .HasForeignKey("DeviceTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ManagementWebApi.Database.DbEmployee", "NavEmployee")
@@ -428,7 +430,7 @@ namespace ManagementWebApi.Migrations
                     b.HasOne("ManagementWebApi.Database.DbDeviceActionType", "NavActionType")
                         .WithMany("NavDeviceActions")
                         .HasForeignKey("ActionTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ManagementWebApi.Database.DbDevice", "NavDevice")
@@ -473,7 +475,7 @@ namespace ManagementWebApi.Migrations
                     b.HasOne("ManagementWebApi.Database.DbSoftwareType", "NavType")
                         .WithMany("NavSoftwares")
                         .HasForeignKey("TypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

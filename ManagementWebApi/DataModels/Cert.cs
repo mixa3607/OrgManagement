@@ -2,7 +2,7 @@
 
 namespace ManagementWebApi.DataModels
 {
-    public class Cert : ICert
+    public class Cert
     {
         public long? Id { get; set; }
 
@@ -12,10 +12,11 @@ namespace ManagementWebApi.DataModels
         public DateTime? NotAfter { get; set; }
         public string Issuer { get; set; }
 
-        //public long? CertFileId { get; set; }
-        public File CertFile { get; set; }
+        public long CertFileId { get; set; }
+        //public File CertFile { get; set; }
 
-        //public long? ContainerFileId { get; set; }
-        public File ContainerFile { get; set; }
+        public long ContainerFileId { get; set; }
+        //public File ContainerFile { get; set; }
+        public Employee Employee { get; set; }
     }
 }

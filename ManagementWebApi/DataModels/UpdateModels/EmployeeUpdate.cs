@@ -7,7 +7,7 @@ namespace ManagementWebApi.DataModels.UpdateModels
 {
     public class EmployeeUpdate
     {
-        public string Initials { get; set; }
+        public string Name { get; set; }
         public string Department { get; set; }
         public string WorkingPosition { get; set; }
         public string Ipv4Address { get; set; }

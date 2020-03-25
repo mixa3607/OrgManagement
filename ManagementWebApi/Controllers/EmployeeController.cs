@@ -24,7 +24,7 @@ namespace ManagementWebApi.Controllers
             _db = db;
         }
 
-        [HttpPost("cert/{userId}")]
+        [HttpPost("{userId}/cert")]
         public async Task<IActionResult> AddCert(long userId, Cert cert)
         {
             var employee = await _db.Employees.FirstOrDefaultAsync(x => x.Id == userId);
@@ -35,8 +35,8 @@ namespace ManagementWebApi.Controllers
             var dbCert = new DbCert()
             {
                 NavEmployee = employee,
-                CertFileId = cert.CertFile.Id,
-                ContainerFileId = cert.ContainerFile.Id,
+                CertFileId = cert.CertFileId,
+                ContainerFileId = cert.ContainerFileId,
                 Issuer = cert.Issuer,
                 Name = cert.Name,
                 NotAfter = cert.NotAfter.Value,
@@ -47,7 +47,7 @@ namespace ManagementWebApi.Controllers
             return Ok(dbCert.ToModel());
         }
 
-        [HttpPost("device/{userId}")]
+        [HttpPost("{userId}/device")]
         public async Task<IActionResult> AddDevice(long userId, [FromBody] Device device)
         {
             var devType = await _db.DeviceTypes.FirstOrDefaultAsync();
@@ -93,6 +93,8 @@ namespace ManagementWebApi.Controllers
             var dbEmployee = await _db.Employees
                 .Include(x=>x.NavPassport)
                 .Include(x=>x.NavTaxId)
+                .Include(x=>x.NavDevices)
+                .Include(x=>x.NavCerts)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (dbEmployee == null)
             {
@@ -109,6 +111,7 @@ namespace ManagementWebApi.Controllers
             var passport = employee.Passport;
             var dbPassport = new DbPassport()
             {
+                Initials = passport.Initials,
                 Batch = passport.Batch,
                 BirthDay = passport.BirthDay.Value,
                 BirthPlace = passport.BirthPlace,
@@ -129,7 +132,7 @@ namespace ManagementWebApi.Controllers
 
             var dbEmployee = new DbEmployee()
             {
-                Initials = employee.Initials,
+                Name = employee.Name,
                 Department = employee.Department,
                 Email = employee.Email,
                 DomainNameEntry = employee.DomainNameEntry,
@@ -174,9 +177,9 @@ namespace ManagementWebApi.Controllers
             {
                 employee.Department = upd.Department;
             }
-            if (upd.Initials != null && employee.Initials != upd.Initials)
+            if (upd.Name != null && employee.Name != upd.Name)
             {
-                employee.Initials = upd.Initials;
+                employee.Name = upd.Name;
             }
             if (upd.DomainNameEntry != null && employee.DomainNameEntry != upd.DomainNameEntry)
             {
@@ -201,7 +204,7 @@ namespace ManagementWebApi.Controllers
 
             _db.Employees.Update(employee);
             await _db.SaveChangesAsync();
-            return Ok(employee.ToModel());
+            return await GetEmployee(employee.Id);
         }
     }
 }

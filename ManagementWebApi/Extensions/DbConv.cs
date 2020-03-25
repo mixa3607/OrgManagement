@@ -6,24 +6,26 @@ namespace ManagementWebApi.Extensions
 {
     public static class DbConv
     {
-        public static Employee ToModel(this DbEmployee dbEmployee)
+        public static Employee ToModel(this DbEmployee dbEmployee, bool noCerts = false, bool noDevices = false)
         {
-            return new Employee()
-            {
-                Id = dbEmployee.Id,
-                Initials = dbEmployee.Initials,
-                Department = dbEmployee.Department,
-                DomainNameEntry = dbEmployee.DomainNameEntry,
-                Email = dbEmployee.Email,
-                WorkingPosition = dbEmployee.WorkingPosition,
-                PhoneNumber = dbEmployee.PhoneNumber,
-                Ipv4Address = dbEmployee.Ipv4StrAddress,
-                IsOnline = dbEmployee.IsOnline,
-                Passport = dbEmployee.NavPassport.ToModel(),
-                TaxId = dbEmployee.NavTaxId.ToModel(),
-                Certs = dbEmployee.NavCerts?.Select(x=>x.ToModel()),
-                Devices = dbEmployee.NavDevices?.Select(x=>x.ToModel())
-            };
+            return dbEmployee == null
+                ? null
+                : new Employee()
+                {
+                    Id = dbEmployee.Id,
+                    Name = dbEmployee.Name,
+                    Department = dbEmployee.Department,
+                    DomainNameEntry = dbEmployee.DomainNameEntry,
+                    Email = dbEmployee.Email,
+                    WorkingPosition = dbEmployee.WorkingPosition,
+                    PhoneNumber = dbEmployee.PhoneNumber,
+                    Ipv4Address = dbEmployee.Ipv4StrAddress,
+                    IsOnline = dbEmployee.IsOnline,
+                    Passport = dbEmployee.NavPassport.ToModel(),
+                    TaxId = dbEmployee.NavTaxId.ToModel(),
+                    Certs = noCerts ? null : dbEmployee.NavCerts?.Select(x => x.ToModel()),
+                    Devices = noDevices ? null : dbEmployee.NavDevices?.Select(x => x.ToModel())
+                };
         }
 
         public static Passport ToModel(this DbPassport dbPassport)
@@ -33,6 +35,7 @@ namespace ManagementWebApi.Extensions
                 : new Passport()
                 {
                     Id = dbPassport.Id,
+                    Initials = dbPassport.Initials,
                     Batch = dbPassport.Batch,
                     Issuer = dbPassport.Issuer,
                     BirthPlace = dbPassport.BirthPlace,
@@ -68,8 +71,9 @@ namespace ManagementWebApi.Extensions
                     NotAfter = dbCert.NotAfter,
                     NotBefore = dbCert.NotBefore,
                     Issuer = dbCert.Issuer,
-                    CertFile = dbCert.NavCertFile.ToModel(),
-                    ContainerFile = dbCert.NavContainerFile.ToModel(),
+                    CertFileId = dbCert.CertFileId,
+                    ContainerFileId = dbCert.ContainerFileId,
+                    Employee = dbCert.NavEmployee.ToModel(true, true)
                 };
         }
 
@@ -82,9 +86,10 @@ namespace ManagementWebApi.Extensions
                     Id = dbDevice.Id,
                     InvNumber = dbDevice.InvNumber,
                     Name = dbDevice.Name,
-                    Type = dbDevice.NavDeviceType.Name,
-                    Actions = dbDevice.NavActions?.Select(x=>x.ToModel()),
-                    Softwares = dbDevice.NavSoftwares?.Select(x=>x.ToModel()),
+                    TypeId = dbDevice.DeviceTypeId,
+                    Actions = dbDevice.NavActions?.Select(x => x.ToModel()),
+                    Softwares = dbDevice.NavSoftwares?.Select(x => x.ToModel()),
+                    Employee = dbDevice.NavEmployee.ToModel(true, true)
                 };
         }
 
@@ -110,7 +115,7 @@ namespace ManagementWebApi.Extensions
                     Id = dbDeviceAction.Id,
                     ReceiptDate = dbDeviceAction.ReceiptDate,
                     ReturnDate = dbDeviceAction.ReturnDate,
-                    Type = dbDeviceAction.NavActionType.Name,
+                    TypeId = dbDeviceAction.ActionTypeId,
                 };
         }
 
@@ -125,6 +130,15 @@ namespace ManagementWebApi.Extensions
                     Md5Hash = dbFile.Md5Hash,
                     Type = dbFile.Type
                 };
+        }
+
+        public static DeviceType ToModel(this DbDeviceType dbDeviceType)
+        {
+            return dbDeviceType == null ? null : new DeviceType() { Id = dbDeviceType.Id, Name = dbDeviceType.Name };
+        }
+        public static DeviceActionType ToModel(this DbDeviceActionType dbDeviceActionType)
+        {
+            return dbDeviceActionType == null ? null : new DeviceActionType() { Id = dbDeviceActionType.Id, Name = dbDeviceActionType.Name };
         }
     }
 }

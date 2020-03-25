@@ -5,6 +5,7 @@ namespace ManagementWebApi.Database
     public class DbPassport
     {
         public long Id { get; set; }
+        public string Initials { get; set; }
         public uint Batch { get; set; }
         public uint SerialNumber { get; set; }
         public string Issuer { get; set; }

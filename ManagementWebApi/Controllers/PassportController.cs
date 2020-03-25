@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels.UpdateModels;
+using ManagementWebApi.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -44,6 +45,10 @@ namespace ManagementWebApi.Controllers
                 return NotFound();
             }
 
+            if (upd.Initials != null && passport.Initials != upd.Initials)
+            {
+                passport.Initials = upd.Initials;
+            }
             if (upd.Issuer != null && passport.Issuer != upd.Issuer)
             {
                 passport.Issuer = upd.Issuer;
@@ -76,10 +81,14 @@ namespace ManagementWebApi.Controllers
             {
                 passport.BirthDay = upd.BirthDay;
             }
+            if (upd.ScanFileId != 0 && passport.ScanFileId != upd.ScanFileId)
+            {
+                passport.ScanFileId = upd.ScanFileId;
+            }
 
             _db.Passports.Update(passport);
             await _db.SaveChangesAsync();
-            return Ok();
+            return Ok(passport.ToModel());
         }
     }
 }

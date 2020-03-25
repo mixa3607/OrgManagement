@@ -6,6 +6,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
+using ManagementWebApi.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +33,20 @@ namespace ManagementWebApi.Controllers
             _virtualRoot = env.WebRootPath;
         }
 
+        [HttpGet("info/{id}")]
+        public async Task<IActionResult> GetInfo(long id)
+        {
+            var file = await _db.Files.FirstOrDefaultAsync(x => x.Id == id);
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(file.ToModel());
+        }
+
         [HttpGet("{md5}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAsync(string md5)
         {
             if (md5.Length != 32)

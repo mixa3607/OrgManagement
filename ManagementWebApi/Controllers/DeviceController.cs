@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
 using ManagementWebApi.Extensions;
@@ -22,6 +23,17 @@ namespace ManagementWebApi.Controllers
             _db = db;
         }
 
+        public async Task<IActionResult> GetAll(int offset = 0, int count = 50)
+        {
+            var dbDevices = await _db.Devices.Include(x => x.NavEmployee).Skip(offset).Take(count).ToArrayAsync();
+            var total = await _db.Devices.CountAsync();
+            return Ok(new GetAllResult<Device>()
+            {
+                TotalCount = total,
+                Values = dbDevices.Select(x => x.ToModel())
+            });
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DelDevice(long id)
         {
@@ -36,7 +48,7 @@ namespace ManagementWebApi.Controllers
             return Ok();
         }
 
-        [HttpPost("software/{deviceId}")]
+        [HttpPost("{deviceId}/software")]
         public async Task<IActionResult> AddSoftware(long deviceId, [FromBody]Software soft)
         {
             var dbDevice = await _db.Devices.FirstOrDefaultAsync(x => x.Id == deviceId);
@@ -65,7 +77,7 @@ namespace ManagementWebApi.Controllers
             return Ok(dbSoft.ToModel());
         }
 
-        [HttpPost("action/{deviceId}")]
+        [HttpPost("{deviceId}/action")]
         public async Task<IActionResult> AddAction(long deviceId, [FromBody]DeviceAction deviceAction)
         {
             var dbDevice = await _db.Devices.FirstOrDefaultAsync(x => x.Id == deviceId);
@@ -74,7 +86,7 @@ namespace ManagementWebApi.Controllers
                 return NotFound();
             }
 
-            var dbType = await _db.DeviceActionTypes.FirstOrDefaultAsync(x => x.Name == deviceAction.Type);
+            var dbType = await _db.DeviceActionTypes.FirstOrDefaultAsync(x => x.Id == deviceAction.TypeId);
             if (dbType == null)
             {
                 ModelState.AddModelError("Type", "Type not found");

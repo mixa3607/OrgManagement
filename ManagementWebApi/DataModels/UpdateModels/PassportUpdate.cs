@@ -4,6 +4,7 @@ namespace ManagementWebApi.DataModels.UpdateModels
 {
     public class PassportUpdate
     {
+        public string Initials { get; set; }
         public uint Batch { get; set; }
         public uint SerialNumber { get; set; }
         public string Issuer { get; set; }
@@ -12,5 +13,6 @@ namespace ManagementWebApi.DataModels.UpdateModels
         public string RegPlace { get; set; }
         public string BirthPlace { get; set; }
         public DateTime? BirthDay { get; set; }
+        public long ScanFileId { get; set; }
     }
 }

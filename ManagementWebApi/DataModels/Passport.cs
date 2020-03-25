@@ -5,6 +5,7 @@ namespace ManagementWebApi.DataModels
     public class Passport
     {
         public long Id { get; set; }
+        public string Initials { get; set; }
         public uint Batch { get; set; }
         public uint SerialNumber { get; set; }
         public string Issuer { get; set; }

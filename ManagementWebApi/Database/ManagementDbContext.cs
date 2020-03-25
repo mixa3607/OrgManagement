@@ -50,11 +50,11 @@ namespace ManagementWebApi.Database
             devices.Property(x => x.InvNumber).IsRequired(false);
             devices.Property(x => x.Id).IsRequired();
             devices.Property(x => x.Name).IsRequired();
-            devices.HasOne(x => x.NavDeviceType).WithMany(y => y.NavDevices).HasForeignKey(x => x.DeviceTypeId);
+            devices.HasOne(x => x.NavDeviceType).WithMany(y => y.NavDevices).HasForeignKey(x => x.DeviceTypeId).OnDelete(DeleteBehavior.Restrict); ;
             devices.HasOne(x => x.NavEmployee).WithMany(y => y.NavDevices).HasForeignKey(x => x.EmployeeId);
 
             deviceActions.HasKey(x => x.Id);
-            deviceActions.HasOne(x => x.NavActionType).WithMany(y => y.NavDeviceActions).HasForeignKey(x => x.ActionTypeId);
+            deviceActions.HasOne(x => x.NavActionType).WithMany(y => y.NavDeviceActions).HasForeignKey(x => x.ActionTypeId).OnDelete(DeleteBehavior.Restrict); ;
             deviceActions.HasOne(x => x.NavDevice).WithMany(y => y.NavActions).HasForeignKey(x => x.DeviceId);
 
             deviceActionTypes.HasKey(x => x.Id);
@@ -66,7 +66,7 @@ namespace ManagementWebApi.Database
             deviceTypes.Property(x => x.Name).IsRequired();
 
             employees.HasKey(x => x.Id);
-            employees.Property(x => x.Initials).IsRequired();
+            employees.Property(x => x.Name).IsRequired();
             employees.Property(x => x.Ipv4StrAddress).IsRequired();
             employees.Property(x => x.Department).IsRequired();
             employees.Property(x => x.DomainNameEntry).IsRequired();
@@ -79,6 +79,7 @@ namespace ManagementWebApi.Database
             files.Property(x => x.Md5Hash).IsRequired();
 
             passports.HasKey(x => x.Id);
+            passports.Property(x => x.Initials).IsRequired();
             passports.Property(x => x.Issuer).IsRequired();
             passports.Property(x => x.RegPlace).IsRequired();
             passports.Property(x => x.BirthPlace).IsRequired();
@@ -90,7 +91,7 @@ namespace ManagementWebApi.Database
             softwares.Property(x => x.Code).IsRequired();
             softwares.Property(x => x.Name).IsRequired();
             softwares.HasOne(x => x.NavDevice).WithMany(y => y.NavSoftwares).HasForeignKey(x => x.DeviceId);
-            softwares.HasOne(x => x.NavType).WithMany(y => y.NavSoftwares).HasForeignKey(x => x.TypeId);
+            softwares.HasOne(x => x.NavType).WithMany(y => y.NavSoftwares).HasForeignKey(x => x.TypeId).OnDelete(DeleteBehavior.Restrict);
 
             softwareTypes.HasKey(x => x.Id);
             softwareTypes.HasIndex(x => x.Name).IsUnique();
