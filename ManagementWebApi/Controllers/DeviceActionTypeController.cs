@@ -23,7 +23,7 @@ namespace ManagementWebApi.Controllers
         {
             _db = db;
         }
-
+        
         [HttpGet]
         public async Task<IActionResult> GetAll(int offset = 0, int count = int.MaxValue)
         {
@@ -39,7 +39,7 @@ namespace ManagementWebApi.Controllers
         [HttpPut]
         public async Task<IActionResult> Add([FromBody] string name)
         {
-            if (!await _db.DeviceActionTypes.AnyAsync(x=>x.Name == name))
+            if (await _db.DeviceActionTypes.AnyAsync(x=>x.Name == name))
             {
                 return Conflict("Type already created");
             }

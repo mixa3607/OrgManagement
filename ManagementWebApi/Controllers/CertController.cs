@@ -34,5 +34,19 @@ namespace ManagementWebApi.Controllers
                 Values = dbCerts.Select(x => x.ToModel())
             });
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Del(long id)
+        {
+            var dbCert = await _db.Certs.FirstOrDefaultAsync(x => x.Id == id);
+            if (dbCert == null)
+            {
+                return NotFound();
+            }
+
+            _db.Certs.Remove(dbCert);
+            await _db.SaveChangesAsync();
+            return Ok();
+        }
     }
 }

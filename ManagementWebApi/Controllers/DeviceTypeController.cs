@@ -39,7 +39,7 @@ namespace ManagementWebApi.Controllers
         [HttpPut]
         public async Task<IActionResult> Add([FromBody] string name)
         {
-            if (!await _db.DeviceTypes.AnyAsync(x => x.Name == name))
+            if (await _db.DeviceTypes.AnyAsync(x => x.Name == name))
             {
                 return Conflict("Type already created");
             }

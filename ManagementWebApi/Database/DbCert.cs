@@ -15,7 +15,7 @@ namespace ManagementWebApi.Database
         public long CertFileId { get; set; }
         public DbFile NavCertFile { get; set; }
 
-        public long ContainerFileId { get; set; }
+        public long? ContainerFileId { get; set; }
         public DbFile NavContainerFile { get; set; }
 
         public long EmployeeId { get; set; }

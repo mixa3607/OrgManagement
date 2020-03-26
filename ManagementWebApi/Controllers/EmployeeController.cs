@@ -24,6 +24,18 @@ namespace ManagementWebApi.Controllers
             _db = db;
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> Find([FromQuery] string query = "", int offset = 0, int count = 10)
+        {
+            var employees = await _db.Employees
+                .Where(x => EF.Functions.Like(x.Name, query + '%'))
+                .Select(x => new Employee() { Id = x.Id, Name = x.Name })
+                .Skip(offset)
+                .Take(count)
+                .ToArrayAsync();
+            return Ok(employees);
+        }
+
         [HttpPost("{userId}/cert")]
         public async Task<IActionResult> AddCert(long userId, Cert cert)
         {

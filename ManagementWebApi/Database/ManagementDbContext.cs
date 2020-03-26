@@ -41,9 +41,9 @@ namespace ManagementWebApi.Database
             certs.Property(x => x.Name).IsRequired();
             certs.HasIndex(x => x.ContainerFileId).IsUnique();
             certs.HasIndex(x => x.CertFileId).IsUnique();
-            certs.HasOne(x => x.NavCertFile).WithOne(y=>y.NavCert).HasForeignKey<DbCert>(x => x.CertFileId);
+            certs.HasOne(x => x.NavCertFile).WithOne(y=>y.NavCert).HasForeignKey<DbCert>(x => x.CertFileId).IsRequired();
             certs.HasOne(x => x.NavContainerFile).WithOne(y=>y.NavContainerCert).HasForeignKey<DbCert>(x => x.ContainerFileId);
-            certs.HasOne(x => x.NavEmployee).WithMany(y => y.NavCerts).HasForeignKey(x => x.EmployeeId);
+            certs.HasOne(x => x.NavEmployee).WithMany(y => y.NavCerts).HasForeignKey(x => x.EmployeeId).IsRequired();
 
             devices.HasKey(x => x.Id);
             devices.HasIndex(x => x.InvNumber);

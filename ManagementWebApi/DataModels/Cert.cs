@@ -15,7 +15,7 @@ namespace ManagementWebApi.DataModels
         public long CertFileId { get; set; }
         //public File CertFile { get; set; }
 
-        public long ContainerFileId { get; set; }
+        public long? ContainerFileId { get; set; }
         //public File ContainerFile { get; set; }
         public Employee Employee { get; set; }
     }
