@@ -1,5 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Reflection;
+using AutoMapper;
 using ManagementWebApi.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -40,6 +42,9 @@ namespace ManagementWebApi
                 options.UseNpgsql(Configuration.GetConnectionString("db_manage"));
                 options.UseLoggerFactory(new NLogLoggerFactory());
             });
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
             services.AddControllers().AddNewtonsoftJson(c => c.SerializerSettings.Converters.Add(
                 new StringEnumConverter { NamingStrategy = new CamelCaseNamingStrategy() }));
 

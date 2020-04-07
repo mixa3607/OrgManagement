@@ -67,7 +67,7 @@ namespace ManagementWebApi.Database
 
             employees.HasKey(x => x.Id);
             employees.Property(x => x.Name).IsRequired();
-            employees.Property(x => x.Ipv4StrAddress).IsRequired();
+            employees.Property(x => x.Ipv4Address).IsRequired();
             employees.Property(x => x.Department).IsRequired();
             employees.Property(x => x.DomainNameEntry).IsRequired();
             employees.Property(x => x.PhoneNumber).IsRequired();
@@ -98,9 +98,9 @@ namespace ManagementWebApi.Database
             softwareTypes.Property(x => x.Name).IsRequired();
             
             taxIds.HasKey(x => x.Id);
-            taxIds.HasIndex(x => x.StrSerialNumber).IsUnique();
-            taxIds.Property(x => x.StrSerialNumber).IsRequired();
-            taxIds.HasOne(x => x.NavTaxIdScan).WithOne(y=>y.NavTaxId).HasForeignKey<DbTaxId>(x => x.TaxIdScan);
+            taxIds.HasIndex(x => x.SerialNumber).IsUnique();
+            taxIds.Property(x => x.SerialNumber).IsRequired();
+            taxIds.HasOne(x => x.NavScanFileId).WithOne(y=>y.NavTaxId).HasForeignKey<DbTaxId>(x => x.ScanFileId).OnDelete(DeleteBehavior.Restrict);
 
         }
     }

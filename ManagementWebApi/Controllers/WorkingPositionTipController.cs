@@ -21,6 +21,7 @@ namespace ManagementWebApi.Controllers
             _db = db;
         }
 
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _db.WorkingPositionHelpers.Select(x => x.Name).ToArrayAsync());

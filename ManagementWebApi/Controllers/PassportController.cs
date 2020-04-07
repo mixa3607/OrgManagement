@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
+using AutoMapper;
 using ManagementWebApi.Database;
+using ManagementWebApi.DataModels;
 using ManagementWebApi.DataModels.UpdateModels;
-using ManagementWebApi.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -36,59 +37,59 @@ namespace ManagementWebApi.Controllers
             return Ok();
         }
 
-        [HttpPost("{id}")]
-        public async Task<IActionResult> UpdPassport(long id, [FromBody]PassportUpdate upd)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdPassport(long id, [FromBody]PassportUpdate upd, [FromServices] IMapper mapper)
         {
-            var passport = await _db.Passports.FirstOrDefaultAsync(x => x.Id == id);
-            if (passport == null)
+            var dbPassport = await _db.Passports.FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
+            if (dbPassport == null)
             {
                 return NotFound();
             }
 
-            if (upd.Initials != null && passport.Initials != upd.Initials)
+            if (upd.Initials != null && dbPassport.Initials != upd.Initials)
             {
-                passport.Initials = upd.Initials;
+                dbPassport.Initials = upd.Initials;
             }
-            if (upd.Issuer != null && passport.Issuer != upd.Issuer)
+            if (upd.Issuer != null && dbPassport.Issuer != upd.Issuer)
             {
-                passport.Issuer = upd.Issuer;
+                dbPassport.Issuer = upd.Issuer;
             }
-            if (upd.RegPlace != null && passport.RegPlace != upd.RegPlace)
+            if (upd.RegPlace != null && dbPassport.RegPlace != upd.RegPlace)
             {
-                passport.RegPlace = upd.RegPlace;
+                dbPassport.RegPlace = upd.RegPlace;
             }
-            if (upd.BirthPlace != null && passport.BirthPlace != upd.BirthPlace)
+            if (upd.BirthPlace != null && dbPassport.BirthPlace != upd.BirthPlace)
             {
-                passport.BirthPlace = upd.BirthPlace;
+                dbPassport.BirthPlace = upd.BirthPlace;
             }
-            if (upd.SerialNumber != 0 && passport.SerialNumber != upd.SerialNumber)
+            if (upd.SerialNumber != 0 && dbPassport.SerialNumber != upd.SerialNumber)
             {
-                passport.SerialNumber = upd.SerialNumber;
+                dbPassport.SerialNumber = upd.SerialNumber;
             }
-            if (upd.Batch != 0 && passport.Batch != upd.Batch)
+            if (upd.Batch != 0 && dbPassport.Batch != upd.Batch)
             {
-                passport.Batch = upd.Batch;
+                dbPassport.Batch = upd.Batch;
             }
-            if (upd.IssuerNum != 0 && passport.IssuerNum != upd.IssuerNum)
+            if (upd.IssuerNum != 0 && dbPassport.IssuerNum != upd.IssuerNum)
             {
-                passport.IssuerNum = upd.IssuerNum;
+                dbPassport.IssuerNum = upd.IssuerNum;
             }
-            if (upd.IssuedAt != null && passport.IssuedAt != upd.IssuedAt)
+            if (upd.IssuedAt != null && dbPassport.IssuedAt != upd.IssuedAt)
             {
-                passport.IssuedAt = upd.IssuedAt;
+                dbPassport.IssuedAt = upd.IssuedAt.Value;
             }
-            if (upd.BirthDay != null && passport.BirthDay != upd.BirthDay)
+            if (upd.BirthDay != null && dbPassport.BirthDay != upd.BirthDay)
             {
-                passport.BirthDay = upd.BirthDay;
+                dbPassport.BirthDay = upd.BirthDay.Value;
             }
-            if (upd.ScanFileId != 0 && passport.ScanFileId != upd.ScanFileId)
+            if (upd.ScanFileId != 0 && dbPassport.ScanFileId != upd.ScanFileId)
             {
-                passport.ScanFileId = upd.ScanFileId;
+                dbPassport.ScanFileId = upd.ScanFileId;
             }
 
-            _db.Passports.Update(passport);
-            await _db.SaveChangesAsync();
-            return Ok(passport.ToModel());
+            _db.Passports.Update(dbPassport);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok(mapper.Map<Passport>(dbPassport));
         }
     }
 }

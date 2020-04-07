@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using ManagementWebApi.DataModels.ListModels;
 
-namespace ManagementWebApi.DataModels
+namespace ManagementWebApi.DataModels.DetailedModels
 {
-    public class Employee
+    public class EmployeeDt
     {
-        public long? Id { get; set; }
+        public long Id { get; set; }
         public string Name { get; set; }
         public string Department { get; set; }
         public string WorkingPosition { get; set; }
@@ -14,14 +15,10 @@ namespace ManagementWebApi.DataModels
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
 
-        
-        //public long? PassportId { get; set; }
         public Passport Passport { get; set; }
-
-        //public long? TaxIdId { get; set; }
         public TaxId TaxId { get; set; }
 
-        public IEnumerable<Cert> Certs { get; set; }
-        public IEnumerable<Device> Devices { get; set; }
+        public IEnumerable<CertL> Certs { get; set; }
+        public IEnumerable<DeviceL> Devices { get; set; }
     }
 }

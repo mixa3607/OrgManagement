@@ -4,12 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ManagementWebApi.Migrations
 {
-    public partial class Init : Migration
+    public partial class init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "DepartamentHelpers",
+                name: "DepartmentHelpers",
                 columns: table => new
                 {
                     Id = table.Column<long>(nullable: false)
@@ -18,7 +18,7 @@ namespace ManagementWebApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DepartamentHelpers", x => x.Id);
+                    table.PrimaryKey("PK_DepartmentHelpers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -48,32 +48,14 @@ namespace ManagementWebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Employees",
-                columns: table => new
-                {
-                    Id = table.Column<long>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Initials = table.Column<string>(nullable: false),
-                    Department = table.Column<string>(nullable: false),
-                    WorkingPosition = table.Column<string>(nullable: true),
-                    Ipv4StrAddress = table.Column<string>(nullable: false),
-                    DomainNameEntry = table.Column<string>(nullable: false),
-                    PhoneNumber = table.Column<string>(nullable: false),
-                    Email = table.Column<string>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Employees", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Files",
                 columns: table => new
                 {
                     Id = table.Column<long>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Md5Hash = table.Column<string>(nullable: false),
-                    CreateDate = table.Column<DateTime>(nullable: false)
+                    CreateDate = table.Column<DateTime>(nullable: false),
+                    Type = table.Column<byte>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -107,6 +89,125 @@ namespace ManagementWebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Passports",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Initials = table.Column<string>(nullable: false),
+                    Batch = table.Column<long>(nullable: false),
+                    SerialNumber = table.Column<long>(nullable: false),
+                    Issuer = table.Column<string>(nullable: false),
+                    IssuerNum = table.Column<long>(nullable: false),
+                    IssuedAt = table.Column<DateTime>(nullable: false),
+                    RegPlace = table.Column<string>(nullable: false),
+                    BirthPlace = table.Column<string>(nullable: false),
+                    BirthDay = table.Column<DateTime>(nullable: false),
+                    ScanFileId = table.Column<long>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Passports", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Passports_Files_ScanFileId",
+                        column: x => x.ScanFileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TaxIds",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SerialNumber = table.Column<string>(nullable: false),
+                    ScanFileId = table.Column<long>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaxIds", x => x.Id);
+                    table.ForeignKey(
+                        name: "IX_TaxIds_ScanFileIdTax",
+                        column: x => x.ScanFileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Employees",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(nullable: false),
+                    Department = table.Column<string>(nullable: false),
+                    WorkingPosition = table.Column<string>(nullable: true),
+                    Ipv4Address = table.Column<string>(nullable: false),
+                    DomainNameEntry = table.Column<string>(nullable: false),
+                    PhoneNumber = table.Column<string>(nullable: false),
+                    Email = table.Column<string>(nullable: false),
+                    IsOnline = table.Column<bool>(nullable: false),
+                    PassportId = table.Column<long>(nullable: false),
+                    TaxIdId = table.Column<long>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Employees", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Employees_TaxIds_PassportId",
+                        column: x => x.PassportId,
+                        principalTable: "TaxIds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Employees_Passports_TaxIdId",
+                        column: x => x.TaxIdId,
+                        principalTable: "Passports",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Certs",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(nullable: false),
+                    NotBefore = table.Column<DateTime>(nullable: false),
+                    NotAfter = table.Column<DateTime>(nullable: false),
+                    Issuer = table.Column<string>(nullable: true),
+                    CertFileId = table.Column<long>(nullable: false),
+                    ContainerFileId = table.Column<long>(nullable: true),
+                    EmployeeId = table.Column<long>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Certs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Certs_Files_CertFileId",
+                        column: x => x.CertFileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Certs_Files_ContainerFileId",
+                        column: x => x.ContainerFileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Certs_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Devices",
                 columns: table => new
                 {
@@ -125,129 +226,11 @@ namespace ManagementWebApi.Migrations
                         column: x => x.DeviceTypeId,
                         principalTable: "DeviceTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Devices_Employees_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Certs",
-                columns: table => new
-                {
-                    Id = table.Column<long>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(nullable: false),
-                    IssuedAt = table.Column<DateTime>(nullable: false),
-                    ExpiredBefore = table.Column<DateTime>(nullable: false),
-                    CertFileId = table.Column<long>(nullable: false),
-                    ContainerFileId = table.Column<long>(nullable: false),
-                    EmployeeId = table.Column<long>(nullable: false),
-                    DbFileId = table.Column<long>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Certs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Certs_Files_CertFileId",
-                        column: x => x.CertFileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Certs_Files_ContainerFileId",
-                        column: x => x.ContainerFileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Certs_Files_DbFileId",
-                        column: x => x.DbFileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Certs_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Passports",
-                columns: table => new
-                {
-                    Id = table.Column<long>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Batch = table.Column<long>(nullable: false),
-                    SerialNumber = table.Column<long>(nullable: false),
-                    Issuer = table.Column<string>(nullable: false),
-                    IssuerNum = table.Column<long>(nullable: false),
-                    IssuedAt = table.Column<DateTime>(nullable: false),
-                    RegPlace = table.Column<string>(nullable: false),
-                    BirthPlace = table.Column<string>(nullable: false),
-                    BirthDay = table.Column<DateTime>(nullable: false),
-                    ScanFileId = table.Column<long>(nullable: false),
-                    EmployeeId = table.Column<long>(nullable: false),
-                    DbFileId = table.Column<long>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Passports", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Passports_Files_DbFileId",
-                        column: x => x.DbFileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Passports_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Passports_Files_ScanFileId",
-                        column: x => x.ScanFileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TaxIds",
-                columns: table => new
-                {
-                    Id = table.Column<long>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StrSerialNumber = table.Column<string>(nullable: false),
-                    TaxIdScan = table.Column<long>(nullable: false),
-                    EmployeeId = table.Column<long>(nullable: false),
-                    DbFileId = table.Column<long>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TaxIds", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TaxIds_Files_DbFileId",
-                        column: x => x.DbFileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_TaxIds_Employees_EmployeeId",
-                        column: x => x.EmployeeId,
-                        principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TaxIds_Files_TaxIdScan",
-                        column: x => x.TaxIdScan,
-                        principalTable: "Files",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -259,7 +242,7 @@ namespace ManagementWebApi.Migrations
                     Id = table.Column<long>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ReceiptDate = table.Column<DateTime>(nullable: false),
-                    ReturnDate = table.Column<DateTime>(nullable: false),
+                    ReturnDate = table.Column<DateTime>(nullable: true),
                     DeviceId = table.Column<long>(nullable: false),
                     ActionTypeId = table.Column<long>(nullable: false)
                 },
@@ -271,7 +254,7 @@ namespace ManagementWebApi.Migrations
                         column: x => x.ActionTypeId,
                         principalTable: "DeviceActionTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_DeviceActions_Devices_DeviceId",
                         column: x => x.DeviceId,
@@ -305,23 +288,20 @@ namespace ManagementWebApi.Migrations
                         column: x => x.TypeId,
                         principalTable: "SoftwareTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Certs_CertFileId",
                 table: "Certs",
-                column: "CertFileId");
+                column: "CertFileId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Certs_ContainerFileId",
                 table: "Certs",
-                column: "ContainerFileId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Certs_DbFileId",
-                table: "Certs",
-                column: "DbFileId");
+                column: "ContainerFileId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Certs_EmployeeId",
@@ -366,20 +346,22 @@ namespace ManagementWebApi.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Passports_DbFileId",
-                table: "Passports",
-                column: "DbFileId");
+                name: "IX_Employees_PassportId",
+                table: "Employees",
+                column: "PassportId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Passports_EmployeeId",
-                table: "Passports",
-                column: "EmployeeId",
+                name: "IX_Employees_TaxIdId",
+                table: "Employees",
+                column: "TaxIdId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Passports_ScanFileId",
                 table: "Passports",
-                column: "ScanFileId");
+                column: "ScanFileId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Softwares_DeviceId",
@@ -398,26 +380,16 @@ namespace ManagementWebApi.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaxIds_DbFileId",
+                name: "IX_TaxIds_ScanFileId",
                 table: "TaxIds",
-                column: "DbFileId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TaxIds_EmployeeId",
-                table: "TaxIds",
-                column: "EmployeeId",
+                column: "ScanFileId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaxIds_StrSerialNumber",
+                name: "IX_TaxIds_SerialNumber",
                 table: "TaxIds",
-                column: "StrSerialNumber",
+                column: "SerialNumber",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TaxIds_TaxIdScan",
-                table: "TaxIds",
-                column: "TaxIdScan");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -426,19 +398,13 @@ namespace ManagementWebApi.Migrations
                 name: "Certs");
 
             migrationBuilder.DropTable(
-                name: "DepartamentHelpers");
+                name: "DepartmentHelpers");
 
             migrationBuilder.DropTable(
                 name: "DeviceActions");
 
             migrationBuilder.DropTable(
-                name: "Passports");
-
-            migrationBuilder.DropTable(
                 name: "Softwares");
-
-            migrationBuilder.DropTable(
-                name: "TaxIds");
 
             migrationBuilder.DropTable(
                 name: "WorkingPositionHelpers");
@@ -453,13 +419,19 @@ namespace ManagementWebApi.Migrations
                 name: "SoftwareTypes");
 
             migrationBuilder.DropTable(
-                name: "Files");
-
-            migrationBuilder.DropTable(
                 name: "DeviceTypes");
 
             migrationBuilder.DropTable(
                 name: "Employees");
+
+            migrationBuilder.DropTable(
+                name: "TaxIds");
+
+            migrationBuilder.DropTable(
+                name: "Passports");
+
+            migrationBuilder.DropTable(
+                name: "Files");
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ManagementWebApi.DataModels
+namespace ManagementWebApi.DataModels.DetailedModels
 {
-    public class Cert
+    public class CertDt
     {
         public long? Id { get; set; }
 
@@ -13,10 +13,8 @@ namespace ManagementWebApi.DataModels
         public string Issuer { get; set; }
 
         public long CertFileId { get; set; }
-        //public File CertFile { get; set; }
-
         public long? ContainerFileId { get; set; }
-        //public File ContainerFile { get; set; }
-        public Employee Employee { get; set; }
+
+        public long EmployeeId { get; set; }
     }
 }

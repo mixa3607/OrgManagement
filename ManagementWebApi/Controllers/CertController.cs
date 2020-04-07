@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
-using ManagementWebApi.Extensions;
+using ManagementWebApi.DataModels.ListModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -18,34 +20,37 @@ namespace ManagementWebApi.Controllers
     {
         private readonly ManagementDbContext _db;
 
-        public CertController(ManagementDbContext db)
+        private readonly MapperConfiguration _mapperCfg;
+
+        public CertController(ManagementDbContext db, MapperConfiguration mapperCfg)
         {
             _db = db;
+            _mapperCfg = mapperCfg;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll(int offset = 0, int count = 50)
         {
-            var dbCerts = await _db.Certs.Include(x => x.NavEmployee).Skip(offset).Take(count).ToArrayAsync();
-            var total = await _db.Devices.CountAsync();
-            return Ok(new GetAllResult<Cert>()
+            var certs = await _db.Certs.ProjectTo<CertL>(_mapperCfg).Skip(offset).Take(count).ToArrayAsync().ConfigureAwait(false);
+            var total = await _db.Devices.CountAsync().ConfigureAwait(false);
+            return Ok(new GetAllResult<CertL>()
             {
                 TotalCount = total,
-                Values = dbCerts.Select(x => x.ToModel())
+                Values = certs
             });
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Del(long id)
         {
-            var dbCert = await _db.Certs.FirstOrDefaultAsync(x => x.Id == id);
+            var dbCert = await _db.Certs.FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
             if (dbCert == null)
             {
                 return NotFound();
             }
 
             _db.Certs.Remove(dbCert);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
     }

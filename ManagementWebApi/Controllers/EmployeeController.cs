@@ -1,9 +1,12 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
+using ManagementWebApi.DataModels.DetailedModels;
+using ManagementWebApi.DataModels.ListModels;
 using ManagementWebApi.DataModels.UpdateModels;
-using ManagementWebApi.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -18,10 +21,74 @@ namespace ManagementWebApi.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly ManagementDbContext _db;
+        private readonly IMapper _mapper;
+        private readonly MapperConfiguration _mapperCfg;
 
-        public EmployeeController(ManagementDbContext db)
+        public EmployeeController(ManagementDbContext db, IMapper mapper, MapperConfiguration mapperCfg)
         {
             _db = db;
+            _mapper = mapper;
+            _mapperCfg = mapperCfg;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployees(int count = 50, int offset = 0)
+        {
+            var totalCount = await _db.Employees.CountAsync().ConfigureAwait(false);
+            var values = await _db.Employees
+                .Skip(offset).Take(count)
+                .ProjectTo<EmployeeL>(_mapperCfg)
+                .ToArrayAsync().ConfigureAwait(false);
+
+            return Ok(new GetAllResult<EmployeeL>()
+            {
+                TotalCount = totalCount,
+                Values = values
+            });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEmployee(long id)
+        {
+            var employee = await _db.Employees
+                .ProjectTo<EmployeeDt>(_mapperCfg)
+                .FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(employee);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddEmployee([FromBody] EmployeeDt employee)
+        {
+            employee.Id = 0;
+            employee.Passport.Id = 0;
+            employee.TaxId.Id = 0;
+
+            var dbEmployee = _mapper.Map<DbEmployee>(employee);
+            _db.Employees.Add(dbEmployee);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+
+            return Ok(_mapper.Map<EmployeeDt>(dbEmployee));
+        }
+
+        //TODO: and del passport
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DelEmployee(long id)
+        {
+            var employeeId = await _db.Employees.Select(x => x.Id).FirstOrDefaultAsync(x => x == id)
+                .ConfigureAwait(false);
+            if (employeeId == 0)
+            {
+                return NotFound();
+            }
+
+            _db.Employees.Remove(new DbEmployee() {Id = employeeId});
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpGet("search")]
@@ -29,194 +96,102 @@ namespace ManagementWebApi.Controllers
         {
             var employees = await _db.Employees
                 .Where(x => EF.Functions.Like(x.Name, query + '%'))
-                .Select(x => new Employee() { Id = x.Id, Name = x.Name })
                 .Skip(offset)
                 .Take(count)
-                .ToArrayAsync();
+                .ProjectTo<IdNamePair>(_mapperCfg)
+                .ToArrayAsync().ConfigureAwait(false);
             return Ok(employees);
         }
 
         [HttpPost("{userId}/cert")]
-        public async Task<IActionResult> AddCert(long userId, Cert cert)
+        public async Task<IActionResult> AddCert(long userId, CertDt cert)
         {
-            var employee = await _db.Employees.FirstOrDefaultAsync(x => x.Id == userId);
-            if (employee == null)
+            var employeeId = await _db.Employees.AnyAsync(x => x.Id == userId).ConfigureAwait(false);
+            if (!employeeId)
             {
                 return NotFound();
             }
-            var dbCert = new DbCert()
-            {
-                NavEmployee = employee,
-                CertFileId = cert.CertFileId,
-                ContainerFileId = cert.ContainerFileId,
-                Issuer = cert.Issuer,
-                Name = cert.Name,
-                NotAfter = cert.NotAfter.Value,
-                NotBefore = cert.NotBefore.Value,
-            };
+
+            var dbCert = _mapper.Map<DbCert>(cert);
             _db.Certs.Add(dbCert);
-            await _db.SaveChangesAsync();
-            return Ok(dbCert.ToModel());
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok(_mapper.Map<CertDt>(dbCert));
         }
 
         [HttpPost("{userId}/device")]
-        public async Task<IActionResult> AddDevice(long userId, [FromBody] Device device)
+        public async Task<IActionResult> AddDevice(long userId, [FromBody] DeviceDt device)
         {
-            var devType = await _db.DeviceTypes.FirstOrDefaultAsync();
-            if (devType == null)
+            var devTypeId = await _db.DeviceTypes.Select(x => x.Id)
+                .FirstOrDefaultAsync(x => x == device.TypeId).ConfigureAwait(false);
+
+            //TODO: move checks to fluent validation
+            if (devTypeId == 0)
             {
                 ModelState.AddModelError("DeviceType", "Device type not found");
                 return BadRequest(new ValidationProblemDetails(ModelState));
             }
 
-            if (!await _db.Employees.AnyAsync(x=>x.Id == userId))
+            if (!await _db.Employees.AnyAsync(x => x.Id == userId).ConfigureAwait(false))
             {
                 ModelState.AddModelError("Employee", "Employee not found");
                 return BadRequest(new ValidationProblemDetails(ModelState));
             }
-            var dbDevice = new DbDevice()
-            {
-                EmployeeId = userId,
-                NavDeviceType = devType,
-                InvNumber = device.InvNumber,
-                Name = device.Name,
-            };
+
+            var dbDevice = _mapper.Map<DbDevice>(device);
+            dbDevice.Id = 0;
             _db.Devices.Add(dbDevice);
-            await _db.SaveChangesAsync();
-            return Ok(dbDevice.ToModel());
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok(_mapper.Map<DeviceDt>(dbDevice));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetEmployees(int count = 50, int offset = 0)
-        {
-            var totalCount = await _db.Employees.CountAsync();
-            var values = await _db.Employees.Skip(offset).Take(count).ToArrayAsync();
 
-            return Ok(new GetAllResult<Employee>()
-            {
-                TotalCount = totalCount,
-                Values = values.Select(x => x.ToModel())
-            });
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetEmployee(long id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmployee(long id, [FromBody] EmployeeUpdate upd)
         {
-            var dbEmployee = await _db.Employees
-                .Include(x=>x.NavPassport)
-                .Include(x=>x.NavTaxId)
-                .Include(x=>x.NavDevices)
-                .Include(x=>x.NavCerts)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var dbEmployee = await _db.Employees.FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
             if (dbEmployee == null)
             {
                 return NotFound();
             }
 
-            return Ok(dbEmployee.ToModel());
-        }
-
-        //TODO: add ids to return value
-        [HttpPut]
-        public async Task<IActionResult> AddEmployee([FromBody] Employee employee)
-        {
-            var passport = employee.Passport;
-            var dbPassport = new DbPassport()
+            if (upd.Department != null && dbEmployee.Department != upd.Department)
             {
-                Initials = passport.Initials,
-                Batch = passport.Batch,
-                BirthDay = passport.BirthDay.Value,
-                BirthPlace = passport.BirthPlace,
-                Issuer = passport.Issuer,
-                IssuedAt = passport.IssuedAt.Value,
-                IssuerNum = passport.IssuerNum,
-                RegPlace = passport.RegPlace,
-                SerialNumber = passport.SerialNumber,
-                ScanFileId = passport.ScanFileId
-            };
-
-            var taxId = employee.TaxId;
-            var dbTaxId = new DbTaxId()
-            {
-                StrSerialNumber = taxId.SerialNumber,
-                TaxIdScan = taxId.ScanFileId
-            };
-
-            var dbEmployee = new DbEmployee()
-            {
-                Name = employee.Name,
-                Department = employee.Department,
-                Email = employee.Email,
-                DomainNameEntry = employee.DomainNameEntry,
-                Ipv4StrAddress = employee.Ipv4Address,
-                PhoneNumber = employee.PhoneNumber,
-                WorkingPosition = employee.WorkingPosition,
-                NavPassport = dbPassport,
-                NavTaxId = dbTaxId
-            };
-
-            _db.Employees.Add(dbEmployee);
-            await _db.SaveChangesAsync();
-            return Ok(dbEmployee.ToModel());
-        }
-
-
-        //TODO: and del passport
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DelEmployee(long id)
-        {
-            var employee = await _db.Employees.FirstOrDefaultAsync(x => x.Id == id);
-            if (employee == null)
-            {
-                return NotFound();
+                dbEmployee.Department = upd.Department;
             }
 
-            _db.Employees.Remove(employee);
-            await _db.SaveChangesAsync();
-            return Ok();
-        }
-
-        [HttpPost("{id}")]
-        public async Task<IActionResult> UpdateEmployee(long id,[FromBody]EmployeeUpdate upd)
-        {
-            var employee = await _db.Employees.FirstOrDefaultAsync(x => x.Id == id);
-            if (employee == null)
+            if (upd.Name != null && dbEmployee.Name != upd.Name)
             {
-                return NotFound();
+                dbEmployee.Name = upd.Name;
             }
 
-            if (upd.Department != null && employee.Department != upd.Department)
+            if (upd.DomainNameEntry != null && dbEmployee.DomainNameEntry != upd.DomainNameEntry)
             {
-                employee.Department = upd.Department;
-            }
-            if (upd.Name != null && employee.Name != upd.Name)
-            {
-                employee.Name = upd.Name;
-            }
-            if (upd.DomainNameEntry != null && employee.DomainNameEntry != upd.DomainNameEntry)
-            {
-                employee.DomainNameEntry = upd.DomainNameEntry;
-            }
-            if (upd.WorkingPosition != null && employee.WorkingPosition != upd.WorkingPosition)
-            {
-                employee.WorkingPosition = upd.WorkingPosition;
-            }
-            if (upd.PhoneNumber != null && employee.PhoneNumber != upd.PhoneNumber)
-            {
-                employee.PhoneNumber = upd.PhoneNumber;
-            }
-            if (upd.Email != null && employee.Email != upd.Email)
-            {
-                employee.Email = upd.Email;
-            }
-            if (upd.Ipv4Address != null && employee.Ipv4StrAddress != upd.Ipv4Address)
-            {
-                employee.Ipv4StrAddress = upd.Ipv4Address;
+                dbEmployee.DomainNameEntry = upd.DomainNameEntry;
             }
 
-            _db.Employees.Update(employee);
-            await _db.SaveChangesAsync();
-            return await GetEmployee(employee.Id);
+            if (upd.WorkingPosition != null && dbEmployee.WorkingPosition != upd.WorkingPosition)
+            {
+                dbEmployee.WorkingPosition = upd.WorkingPosition;
+            }
+
+            if (upd.PhoneNumber != null && dbEmployee.PhoneNumber != upd.PhoneNumber)
+            {
+                dbEmployee.PhoneNumber = upd.PhoneNumber;
+            }
+
+            if (upd.Email != null && dbEmployee.Email != upd.Email)
+            {
+                dbEmployee.Email = upd.Email;
+            }
+
+            if (upd.Ipv4Address != null && dbEmployee.Ipv4Address != upd.Ipv4Address)
+            {
+                dbEmployee.Ipv4Address = upd.Ipv4Address;
+            }
+
+            _db.Employees.Update(dbEmployee);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok(_mapper.Map<EmployeeDt>(dbEmployee));
         }
     }
 }

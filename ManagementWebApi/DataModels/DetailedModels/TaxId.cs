@@ -6,6 +6,5 @@
         public string SerialNumber { get; set; }
 
         public long ScanFileId { get; set; }
-        //public File TaxIdScan { get; set; }
     }
 }

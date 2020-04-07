@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using ManagementWebApi.Database;
-using ManagementWebApi.DataModels;
-using ManagementWebApi.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;

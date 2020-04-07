@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
-using ManagementWebApi.Extensions;
+using ManagementWebApi.DataModels.DetailedModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -27,7 +27,7 @@ namespace ManagementWebApi.Controllers
         {
             var dbDevices = await _db.Devices.Include(x => x.NavEmployee).Skip(offset).Take(count).ToArrayAsync();
             var total = await _db.Devices.CountAsync();
-            return Ok(new GetAllResult<Device>()
+            return Ok(new GetAllResult<DeviceDt>()
             {
                 TotalCount = total,
                 Values = dbDevices.Select(x => x.ToModel())
@@ -44,20 +44,20 @@ namespace ManagementWebApi.Controllers
             }
 
             _db.Devices.Remove(dbDevice);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
 
         [HttpPost("{deviceId}/software")]
         public async Task<IActionResult> AddSoftware(long deviceId, [FromBody]Software soft)
         {
-            var dbDevice = await _db.Devices.FirstOrDefaultAsync(x => x.Id == deviceId);
+            var dbDevice = await _db.Devices.FirstOrDefaultAsync(x => x.Id == deviceId).ConfigureAwait(false);
             if (dbDevice == null)
             {
                 return NotFound();
             }
 
-            var dbType = await _db.SoftwareTypes.FirstOrDefaultAsync(x => x.Name == soft.Type);
+            var dbType = await _db.SoftwareTypes.FirstOrDefaultAsync(x => x.Name == soft.Type).ConfigureAwait(false);
             if (dbType == null)
             {
                 ModelState.AddModelError("Type", "Type not found");
@@ -75,6 +75,14 @@ namespace ManagementWebApi.Controllers
             _db.Softwares.Add(dbSoft);
             await _db.SaveChangesAsync();
             return Ok(dbSoft.ToModel());
+        }
+
+        [HttpGet("{deviceId}/software")]
+        public async Task<IActionResult> GetSoftwares(long deviceId, int offset = 0, int count = 40)
+        {
+            var dbSftw = await _db.Softwares.Skip(offset).Take(count).Where(x=>x.DeviceId == deviceId).ToArrayAsync().ConfigureAwait(false);
+            var total = await _db.Softwares.Where(x => x.DeviceId == deviceId).CountAsync().ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpPost("{deviceId}/action")]

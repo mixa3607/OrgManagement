@@ -4,9 +4,9 @@ using System.Net.Mime;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using AutoMapper;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
-using ManagementWebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -26,23 +26,25 @@ namespace ManagementWebApi.Controllers
     {
         private readonly ManagementDbContext _db;
         private readonly string _virtualRoot;
+        private readonly IMapper _mapper;
 
-        public FileController(ManagementDbContext db, IWebHostEnvironment env)
+        public FileController(ManagementDbContext db, IWebHostEnvironment env, IMapper mapper)
         {
             _db = db;
             _virtualRoot = env.WebRootPath;
+            _mapper = mapper;
         }
 
         [HttpGet("info/{id}")]
         public async Task<IActionResult> GetInfo(long id)
         {
-            var file = await _db.Files.FirstOrDefaultAsync(x => x.Id == id);
-            if (file == null)
+            var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Id == id);
+            if (dbFile == null)
             {
                 return NotFound();
             }
 
-            return Ok(file.ToModel());
+            return Ok(_mapper.Map<DataModels.File>(dbFile));
         }
 
         [HttpGet("{md5}")]
@@ -58,7 +60,7 @@ namespace ManagementWebApi.Controllers
             md5 = md5.ToLower();
             var prefix = md5.Substring(0, 3);
             var virtualFilePath = Path.Combine(GlobalConst.RelFilesPath, prefix, md5);
-            var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Md5Hash == md5);
+            var dbFile = await _db.Files.FirstOrDefaultAsync(x => x.Md5Hash == md5).ConfigureAwait(false);
 
             var returnFileName = virtualFilePath;
             switch (dbFile.Type)
@@ -102,7 +104,7 @@ namespace ManagementWebApi.Controllers
         }
 
         #region TODO: need refactoring
-        [HttpPut("cert")]
+        [HttpPost("cert")]
         public async Task<IActionResult> UploadCert(IFormFile file)
         {
             var fileStream = file.OpenReadStream();
@@ -137,7 +139,7 @@ namespace ManagementWebApi.Controllers
             });
         }
 
-        [HttpPut("img")]
+        [HttpPost("img")]
         public async Task<IActionResult> UploadImg(IFormFile file)
         {
             var fileStream = file.OpenReadStream();
@@ -164,7 +166,7 @@ namespace ManagementWebApi.Controllers
             });
         }
 
-        [HttpPut("bin")]
+        [HttpPost("bin")]
         public async Task<IActionResult> UploadBinary(IFormFile file)
         {
             var fileStream = file.OpenReadStream();

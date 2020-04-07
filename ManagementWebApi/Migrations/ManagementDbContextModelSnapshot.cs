@@ -16,7 +16,7 @@ namespace ManagementWebApi.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                .HasAnnotation("ProductVersion", "3.1.2")
+                .HasAnnotation("ProductVersion", "3.1.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("ManagementWebApi.Database.DbCert", b =>
@@ -192,7 +192,7 @@ namespace ManagementWebApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Ipv4StrAddress")
+                    b.Property<string>("Ipv4Address")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -259,7 +259,7 @@ namespace ManagementWebApi.Migrations
                     b.Property<long>("Batch")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime?>("BirthDay")
+                    b.Property<DateTime>("BirthDay")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("BirthPlace")
@@ -270,7 +270,7 @@ namespace ManagementWebApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("IssuedAt")
+                    b.Property<DateTime>("IssuedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Issuer")
@@ -354,19 +354,19 @@ namespace ManagementWebApi.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<string>("StrSerialNumber")
+                    b.Property<long>("ScanFileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("TaxIdScan")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("StrSerialNumber")
+                    b.HasIndex("ScanFileId")
                         .IsUnique();
 
-                    b.HasIndex("TaxIdScan")
+                    b.HasIndex("SerialNumber")
                         .IsUnique();
 
                     b.ToTable("TaxIds");
@@ -477,10 +477,11 @@ namespace ManagementWebApi.Migrations
 
             modelBuilder.Entity("ManagementWebApi.Database.DbTaxId", b =>
                 {
-                    b.HasOne("ManagementWebApi.Database.DbFile", "NavTaxIdScan")
+                    b.HasOne("ManagementWebApi.Database.DbFile", "NavScanFileId")
                         .WithOne("NavTaxId")
-                        .HasForeignKey("ManagementWebApi.Database.DbTaxId", "TaxIdScan")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("ManagementWebApi.Database.DbTaxId", "ScanFileId")
+                        .HasConstraintName("IX_TaxIds_ScanFileIdTax")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

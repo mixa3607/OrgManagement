@@ -10,15 +10,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManagementWebApi.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    [Migration("20200311184845_test2")]
-    partial class test2
+    [Migration("20200407172331_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                .HasAnnotation("ProductVersion", "3.1.2")
+                .HasAnnotation("ProductVersion", "3.1.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("ManagementWebApi.Database.DbCert", b =>
@@ -31,21 +31,24 @@ namespace ManagementWebApi.Migrations
                     b.Property<long>("CertFileId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("ContainerFileId")
+                    b.Property<long?>("ContainerFileId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("EmployeeId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("ExpiredBefore")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("IssuedAt")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("Issuer")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("NotAfter")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("NotBefore")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -72,7 +75,7 @@ namespace ManagementWebApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DepartamentHelpers");
+                    b.ToTable("DepartmentHelpers");
                 });
 
             modelBuilder.Entity("ManagementWebApi.Database.DbDevice", b =>
@@ -122,7 +125,7 @@ namespace ManagementWebApi.Migrations
                     b.Property<DateTime>("ReceiptDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime>("ReturnDate")
+                    b.Property<DateTime?>("ReturnDate")
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
@@ -191,22 +194,37 @@ namespace ManagementWebApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Initials")
+                    b.Property<string>("Ipv4Address")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Ipv4StrAddress")
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<long>("PassportId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long>("TaxIdId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("WorkingPosition")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PassportId")
+                        .IsUnique();
+
+                    b.HasIndex("TaxIdId")
+                        .IsUnique();
 
                     b.ToTable("Employees");
                 });
@@ -224,6 +242,9 @@ namespace ManagementWebApi.Migrations
                     b.Property<string>("Md5Hash")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("smallint");
 
                     b.HasKey("Id");
 
@@ -247,8 +268,9 @@ namespace ManagementWebApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Initials")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("IssuedAt")
                         .HasColumnType("timestamp without time zone");
@@ -272,10 +294,8 @@ namespace ManagementWebApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployeeId")
+                    b.HasIndex("ScanFileId")
                         .IsUnique();
-
-                    b.HasIndex("ScanFileId");
 
                     b.ToTable("Passports");
                 });
@@ -336,25 +356,20 @@ namespace ManagementWebApi.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<long>("EmployeeId")
+                    b.Property<long>("ScanFileId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("StrSerialNumber")
+                    b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("TaxIdScan")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployeeId")
+                    b.HasIndex("ScanFileId")
                         .IsUnique();
 
-                    b.HasIndex("StrSerialNumber")
+                    b.HasIndex("SerialNumber")
                         .IsUnique();
-
-                    b.HasIndex("TaxIdScan");
 
                     b.ToTable("TaxIds");
                 });
@@ -384,9 +399,7 @@ namespace ManagementWebApi.Migrations
 
                     b.HasOne("ManagementWebApi.Database.DbFile", "NavContainerFile")
                         .WithOne("NavContainerCert")
-                        .HasForeignKey("ManagementWebApi.Database.DbCert", "ContainerFileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ManagementWebApi.Database.DbCert", "ContainerFileId");
 
                     b.HasOne("ManagementWebApi.Database.DbEmployee", "NavEmployee")
                         .WithMany("NavCerts")
@@ -400,7 +413,7 @@ namespace ManagementWebApi.Migrations
                     b.HasOne("ManagementWebApi.Database.DbDeviceType", "NavDeviceType")
                         .WithMany("NavDevices")
                         .HasForeignKey("DeviceTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ManagementWebApi.Database.DbEmployee", "NavEmployee")
@@ -415,7 +428,7 @@ namespace ManagementWebApi.Migrations
                     b.HasOne("ManagementWebApi.Database.DbDeviceActionType", "NavActionType")
                         .WithMany("NavDeviceActions")
                         .HasForeignKey("ActionTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ManagementWebApi.Database.DbDevice", "NavDevice")
@@ -425,18 +438,27 @@ namespace ManagementWebApi.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ManagementWebApi.Database.DbPassport", b =>
+            modelBuilder.Entity("ManagementWebApi.Database.DbEmployee", b =>
                 {
-                    b.HasOne("ManagementWebApi.Database.DbEmployee", "NavEmployee")
-                        .WithOne("NavPassport")
-                        .HasForeignKey("ManagementWebApi.Database.DbPassport", "EmployeeId")
+                    b.HasOne("ManagementWebApi.Database.DbTaxId", "NavTaxId")
+                        .WithOne("NavEmployee")
+                        .HasForeignKey("ManagementWebApi.Database.DbEmployee", "PassportId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManagementWebApi.Database.DbFile", "NavScanFile")
-                        .WithMany()
-                        .HasForeignKey("ScanFileId")
+                    b.HasOne("ManagementWebApi.Database.DbPassport", "NavPassport")
+                        .WithOne("NavEmployee")
+                        .HasForeignKey("ManagementWebApi.Database.DbEmployee", "TaxIdId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ManagementWebApi.Database.DbPassport", b =>
+                {
+                    b.HasOne("ManagementWebApi.Database.DbFile", "NavScanFile")
+                        .WithOne("NavPassport")
+                        .HasForeignKey("ManagementWebApi.Database.DbPassport", "ScanFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -451,22 +473,17 @@ namespace ManagementWebApi.Migrations
                     b.HasOne("ManagementWebApi.Database.DbSoftwareType", "NavType")
                         .WithMany("NavSoftwares")
                         .HasForeignKey("TypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("ManagementWebApi.Database.DbTaxId", b =>
                 {
-                    b.HasOne("ManagementWebApi.Database.DbEmployee", "NavEmployee")
+                    b.HasOne("ManagementWebApi.Database.DbFile", "NavScanFileId")
                         .WithOne("NavTaxId")
-                        .HasForeignKey("ManagementWebApi.Database.DbTaxId", "EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ManagementWebApi.Database.DbFile", "NavTaxIdScan")
-                        .WithMany()
-                        .HasForeignKey("TaxIdScan")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("ManagementWebApi.Database.DbTaxId", "ScanFileId")
+                        .HasConstraintName("IX_TaxIds_ScanFileIdTax")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

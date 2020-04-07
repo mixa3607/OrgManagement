@@ -21,9 +21,10 @@ namespace ManagementWebApi.Controllers
             _db = db;
         }
 
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _db.DepartmentHelpers.Select(x => x.Name).ToArrayAsync());
+            return Ok(await _db.DepartmentHelpers.Select(x => x.Name).ToArrayAsync().ConfigureAwait(false));
         }
     }
 }

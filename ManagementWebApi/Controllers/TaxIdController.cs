@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
+using AutoMapper;
 using ManagementWebApi.Database;
 using ManagementWebApi.DataModels;
 using ManagementWebApi.DataModels.UpdateModels;
-using ManagementWebApi.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -23,39 +23,39 @@ namespace ManagementWebApi.Controllers
             _db = db;
         }
 
-        [HttpPost("{id}")]
-        public async Task<IActionResult> Update(long id, [FromBody]TaxIdUpdate upd)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(long id, [FromBody]TaxIdUpdate upd, [FromServices] IMapper mapper)
         {
-            var dbTaxId = await _db.TaxIds.FirstOrDefaultAsync(x => x.Id == id);
+            var dbTaxId = await _db.TaxIds.FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
             if (dbTaxId == null)
             {
                 return NotFound();
             }
 
-            if (upd.SerialNumber != null && dbTaxId.StrSerialNumber != upd.SerialNumber)
+            if (upd.SerialNumber != null && dbTaxId.SerialNumber != upd.SerialNumber)
             {
-                dbTaxId.StrSerialNumber = upd.SerialNumber;
+                dbTaxId.SerialNumber = upd.SerialNumber;
             }
-            if (upd.ScanFileId != 0 && dbTaxId.TaxIdScan != upd.ScanFileId)
+            if (upd.ScanFileId != 0 && dbTaxId.ScanFileId != upd.ScanFileId)
             {
-                dbTaxId.TaxIdScan = upd.ScanFileId;
+                dbTaxId.ScanFileId = upd.ScanFileId;
             }
             _db.TaxIds.Update(dbTaxId);
-            await _db.SaveChangesAsync();
-            return Ok(dbTaxId.ToModel());
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok(mapper.Map<TaxId>(dbTaxId));
         }
 
-        [HttpPut]
-        public async Task<IActionResult> AddTaxId(TaxId tax)
-        {
-            var dbTax = new DbTaxId()
-            {
-                StrSerialNumber = tax.SerialNumber,
-                TaxIdScan = tax.ScanFileId
-            };
-            _db.TaxIds.Add(dbTax);
-            await _db.SaveChangesAsync();
-            return Ok(dbTax.ToModel());
-        }
+        //[HttpPut]
+        //public async Task<IActionResult> AddTaxId(TaxId tax)
+        //{
+        //    var dbTax = new DbTaxId()
+        //    {
+        //        SerialNumber = tax.SerialNumber,
+        //        ScanFileId = tax.ScanFileId
+        //    };
+        //    _db.TaxIds.Add(dbTax);
+        //    await _db.SaveChangesAsync().ConfigureAwait(false);
+        //    return Ok(dbTax.ToModel());
+        //}
     }
 }

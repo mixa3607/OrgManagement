@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AutoMapper;
 using ManagementWebApi.Database;
-using ManagementWebApi.Extensions;
+using ManagementWebApi.DataModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiSharedParts.Attributes;
@@ -16,30 +17,32 @@ namespace ManagementWebApi.Controllers
     public class DeviceActionController:ControllerBase
     {
         private readonly ManagementDbContext _db;
+        private readonly IMapper _mapper;
 
-        public DeviceActionController(ManagementDbContext db)
+        public DeviceActionController(ManagementDbContext db, IMapper mapper)
         {
             _db = db;
+            _mapper = mapper;
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DelAction(long id)
         {
-            var dbAction = await _db.DeviceActions.FirstOrDefaultAsync(x => x.Id == id);
+            var dbAction = await _db.DeviceActions.FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
             if (dbAction == null)
             {
                 return NotFound();
             }
 
             _db.DeviceActions.Remove(dbAction);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
 
-        [HttpPost("{id}/returnDate")]
+        [HttpPut("{id}/returnDate")]
         public async Task<IActionResult> UpdReturnDate(long id, [FromBody] DateTime date)
         {
-            var dbAction = await _db.DeviceActions.FirstOrDefaultAsync(x => x.Id == id);
+            var dbAction = await _db.DeviceActions.FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
             if (dbAction == null)
             {
                 return NotFound();
@@ -47,8 +50,8 @@ namespace ManagementWebApi.Controllers
 
             dbAction.ReturnDate = date;
             _db.DeviceActions.Update(dbAction);
-            await _db.SaveChangesAsync();
-            return Ok(dbAction.ToModel());
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return Ok(_mapper.Map<DeviceAction>(dbAction));
         }
     }
 }

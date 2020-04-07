@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-
-namespace ManagementWebApi.Database
+﻿namespace ManagementWebApi.DataModels.ListModels
 {
-    public class DbEmployee
+    public class EmployeeL
     {
         public long Id { get; set; }
         public string Name { get; set; }
@@ -13,14 +11,5 @@ namespace ManagementWebApi.Database
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
         public bool IsOnline { get; set; } = false;
-
-        public long PassportId { get; set; }
-        public DbPassport NavPassport { get; set; }
-
-        public long TaxIdId { get; set; }
-        public DbTaxId NavTaxId { get; set; }
-
-        public List<DbDevice> NavDevices { get; set; }
-        public List<DbCert> NavCerts { get; set; }
     }
 }
